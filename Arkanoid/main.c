@@ -5,7 +5,7 @@
 int szer = 800, wys = 600, deska_x = 100, deska_y = 20;
 
 
-
+//test
 
 int main()
 {
