@@ -1,54 +1,183 @@
-#include <allegro5/allegro.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <allegro5/allegro5.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_primitives.h>
 
-int szer = 800, wys = 600, deska_x = 100, deska_y = 20;
+int deska_x = 100, deska_y = 150;
 
+void must_init(bool test, const char* description)
+{
+    if (test) return;
 
-//test
+    printf("couldn't initialize %s\n", description);
+    exit(1);
+}
+
+enum BOUNCER_TYPE {
+   // BT_HELLO = 0,
+   // BT_LINE2,
+    BT_DESKA = 0,
+    BT_PILKA,
+    BT_N
+    
+};
+
+typedef struct BOUNCER
+{
+    float x, y;
+    float dx, dy;
+    int type;
+} BOUNCER;
 
 int main()
 {
-    al_init();
-    al_install_keyboard(); //instalacja klawiatury
- 
-    al_install_mouse(); //instalacja myszy
-    al_init_font_addon(); //instalacja czcionki
-    al_init_image_addon(); //dodawanie bitmap
-    ALLEGRO_KEYBOARD_STATE klawiatura; 
-    ALLEGRO_DISPLAY* okno = al_create_display(szer, wys); //tworzenie okna
-    al_set_window_title(okno, "ARKANOID PROJEKT"); //tytul projektu
-    ALLEGRO_BITMAP* deska = al_create_bitmap(deska_x, deska_y); //stworzenie platformy do odbijania
-    ALLEGRO_BITMAP* pilka = al_load_bitmap("pilka.png"); //wczytanie pilki
-    ALLEGRO_FONT* font8 = al_create_builtin_font();
-    al_set_target_bitmap(deska);
-    al_clear_to_color(al_map_rgb(200, 0, 0));
-    al_set_target_bitmap(al_get_backbuffer(okno));
-    int x = 320, y = 550;
-    int szerokosc_pilka = al_get_bitmap_width(pilka);
-    int wysokosc_pilka = al_get_bitmap_height(pilka);
-    al_get_keyboard_state(&klawiatura);
-    double czas = al_get_time();
-    while (!al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE))
+    must_init(al_init(), "allegro");
+    must_init(al_install_keyboard(), "keyboard");
+
+    ALLEGRO_TIMER* timer = al_create_timer(1.0 / 30.0);
+    must_init(timer, "timer");
+
+    ALLEGRO_EVENT_QUEUE* queue = al_create_event_queue();
+    must_init(queue, "queue");
+
+    al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
+    al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
+    al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
+
+    ALLEGRO_DISPLAY* disp = al_create_display(640, 480);
+    must_init(disp, "display");
+
+    ALLEGRO_FONT* font = al_create_builtin_font();
+    must_init(font, "font");
+
+    must_init(al_init_image_addon(), "image addon");
+   
+   
+
+    must_init(al_init_primitives_addon(), "primitives");
+   // ALLEGRO_BITMAP* deska = al_create_bitmap(100, 20); //stworzenie platformy do odbijania
+   // int yx = 320, yy = 550;
+    ALLEGRO_BITMAP * pilka = al_load_bitmap("pilka.png"); //wczytanie pilki
+    must_init(pilka, "pilka");
+    ALLEGRO_BITMAP* deska = al_load_bitmap("deska.png");
+    must_init(deska, "deska");
+    //al_set_target_bitmap(al_get_backbuffer(okno));
+    al_register_event_source(queue, al_get_keyboard_event_source());
+    al_register_event_source(queue, al_get_display_event_source(disp));
+    al_register_event_source(queue, al_get_timer_event_source(timer));
+
+    bool done = false;
+    bool redraw = true;
+    ALLEGRO_EVENT event;
+
+    BOUNCER obj[BT_N];
+    for (int i = 0; i < BT_N; i++)
     {
-        al_get_keyboard_state(&klawiatura);
-        if (al_get_time() > czas + 0.01)
-        {
-            if (al_key_down(&klawiatura, ALLEGRO_KEY_RIGHT) && x < szer - deska_x) x = x + 5;
-            if (al_key_down(&klawiatura, ALLEGRO_KEY_LEFT) && x > 0) x = x - 5;
-  
-            czas = al_get_time(); //zegar do eventow
-        }
-        al_clear_to_color(al_map_rgb_f(100, 0.5, 0.5)); //tlo planszy
-        al_draw_bitmap(deska, x, y, 0); //wywolanie deski
-        //al_draw_bitmap(pilka, 400, 300, 0);
-        al_draw_scaled_bitmap(pilka, 15, 10, szerokosc_pilka, wysokosc_pilka, 400, 300, 25, 25, 0); //wywolanie pilki
-        al_draw_textf(font8, al_map_rgb(255, 255, 0), 10, 10, 0, "x=%3d , y=%3d", x, y); //tekst sluzacy do okreslania gdzie znajudje sie deska - tymczasowy
-        al_flip_display();
-        al_rest(0.001);
+        BOUNCER* b = &obj[i];
+        b->x = rand() % 640;
+        b->y = rand() % 480;
+        b->dx = ((((float)rand()) / RAND_MAX) - 0.5) * 2 * 4;
+        b->dy = ((((float)rand()) / RAND_MAX) - 0.5) * 2 * 4;
+        b->type = i;
     }
-    al_destroy_bitmap(deska);// czyszczenie pamieci
-    al_destroy_display(okno);//
-    al_destroy_bitmap(pilka); //
+
+    al_start_timer(timer);
+    while (1)
+    {   
+       
+        al_wait_for_event(queue, &event);
+
+        switch (event.type)
+        {
+        case ALLEGRO_EVENT_TIMER:
+            for (int i = 0; i < BT_N; i++)
+            {
+                BOUNCER* b = &obj[i];
+                b->x += b->dx;
+                b->y += b->dy;
+
+                if (b->x < 0)
+                {
+                    b->x *= -1;
+                    b->dx *= -1;
+                }
+                if (b->x > 640)
+                {
+                    b->x -= (b->x - 640);
+                    b->dx *= -1;
+                }
+                if (b->y < 0)
+                {
+                    b->y *= -1;
+                    b->dy *= -1;
+                }
+                if (b->y > 480)
+                {
+                    b->x -= (b->y - 480);
+                    b->dy *= -1;
+                }
+            }
+
+            redraw = true;
+            break;
+
+        //case ALLEGRO_EVENT_KEY_DOWN:
+        case ALLEGRO_EVENT_DISPLAY_CLOSE:
+            done = true;
+            break;
+           
+          //  if (event.keyboard.keycode == ALLEGRO_KEY_RIGHT && deska_x < 480 - 100)
+               
+
+        }
+
+        if (done)
+            break;
+
+        if (redraw && al_is_event_queue_empty(queue))
+        {
+            ALLEGRO_VERTEX v[4];
+            al_clear_to_color(al_map_rgb(100, 0.5, 0.5));
+            
+            for (int i = 0; i < BT_N; i++)
+            {
+                BOUNCER* b = &obj[i];
+                switch (b->type)
+                {
+               // case BT_HELLO:
+                  //  al_draw_text(font, al_map_rgb(255, 255, 255), b->x, b->y, 0, "Hello world!");
+                 //   break;
+      
+
+               /// case BT_LINE2:
+                  //  al_draw_line(b->x, b->y, b->x + 70, b->y - 20, al_map_rgb_f(1, 1, 0), 1);
+                   
+                  //  break;
+
+                case BT_PILKA:
+                    al_draw_bitmap(pilka, b->x, b->y, 0);
+                    break;
+                case BT_DESKA:
+                    al_draw_bitmap(deska, b->x, 350, 0);
+
+                    break;
+
+                }
+                
+            }
+            
+            al_flip_display();
+            redraw = false;
+        }
+    }
+
+    al_destroy_bitmap(pilka);
+    al_destroy_font(font);
+    al_destroy_display(disp);
+    al_destroy_timer(timer);
+    al_destroy_event_queue(queue);
+
     return 0;
 }
