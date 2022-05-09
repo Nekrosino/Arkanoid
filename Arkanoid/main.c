@@ -11,7 +11,7 @@ enum Direction {
     GORA,
     DOL,
     PRAWO
-}Dir = DOL; // odbijanie od krawedzi
+}Dir = GORA; // odbijanie od krawedzi
 
 bool kolizja(float paddle_x, float paddle_y, int szer, int wys, int p_y, int p_x, int paddle_width, int paddle_height)
 {
@@ -22,6 +22,18 @@ bool kolizja(float paddle_x, float paddle_y, int szer, int wys, int p_y, int p_x
         else return false;
     }
     else return false;
+}
+
+bool brick_collision(float brick_x, float brick_y, int szer, int wys, int p_y, int p_x, int brick_width, int brick_height)
+{   
+    if (p_y == brick_y)
+    {
+        if ((p_x >= brick_x && p_x < brick_x + brick_width))
+        
+            return true;
+           else return false;
+    }
+        else return false;
 }
 bool angle_normal, angle_large;
 int check_bar_collision(int ball_x, int ball_y, int bar_x, int bar_y, int bar_width, int bar_height)
@@ -55,8 +67,13 @@ int main()
     al_set_window_title(okno, "ARKANOID PROJEKT"); //tytul projektu
     //ALLEGRO_BITMAP* deska = al_create_bitmap(deska_x, deska_y); //stworzenie platformy do odbijania
     ALLEGRO_BITMAP* paddle = al_load_bitmap("deska.png");
+    ALLEGRO_BITMAP* red_brick = al_load_bitmap("red.png");
     int paddle_width = al_get_bitmap_width(paddle);
     int paddle_height = al_get_bitmap_height(paddle);
+    int brick_width = al_get_bitmap_width(red_brick);
+    int brick_height = al_get_bitmap_height(red_brick);
+    int brick_x = 300;
+    int brick_y = 100;
     ALLEGRO_BITMAP* pilka = al_load_bitmap("pilka.png"); //wczytanie pilki
     ALLEGRO_FONT* font8 = al_create_builtin_font(); //czcionka
    // al_set_target_bitmap(deska);
@@ -73,7 +90,7 @@ int main()
     ALLEGRO_EVENT event;
     //double czas = al_get_time();
     al_start_timer(timer);
-
+    int exist = 1;
     while (!al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE))
     {
         al_wait_for_event(queue, &event);
@@ -116,6 +133,16 @@ int main()
             {
                 Dir = GORA;
             }
+
+            //Cegla
+            int brickcollision = brick_collision(brick_x, brick_y, szer, wys, p_y, p_x, brick_width, brick_height);
+            
+            if (brickcollision == 1)
+            {
+                Dir = DOL;
+                exist = 0;
+            }
+            // 
             //deska
            // int bar_collision = check_bar_collision(p_x, p_y, x, y, deska_x, deska_y);
           //  if (bar_collision == angle_normal)
@@ -156,14 +183,28 @@ int main()
 
 
 
-
+            //font_caption = al_load_font("fonts/FFF_Tusj.ttf", 60, 0);
+           
+       
             al_clear_to_color(al_map_rgb_f(100, 0.5, 0.5)); //tlo planszy
             //al_draw_bitmap(deska, x, y, 0); //wywolanie deski
             al_draw_bitmap(paddle, paddle_x, paddle_y, 1);
             // al_draw_bitmap(pilka, 400, 300, 1);
+           
+            if (exist==1)
+            {
+                al_draw_bitmap(red_brick, brick_x, brick_y, 1);
+              
+
+            }
+            else if(exist==0)
+            {
+                al_draw_text(font8, al_map_rgb(0, 255, 0), 350, 300, 0, "Przegrales");
+            }
+
             al_draw_scaled_bitmap(pilka, 15, 10, szerokosc_pilka, wysokosc_pilka, p_x, p_y, 25, 25, 0); //wywolanie pilki
            // al_draw_textf(font8, al_map_rgb(255, 255, 0), 10, 10, 0, "x=%3d , y=%3d", x, y); //tekst sluzacy do okreslania gdzie znajudje sie deska - tymczasowy
-
+            
             al_flip_display();
             al_rest(0.001);
         }
