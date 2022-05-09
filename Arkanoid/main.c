@@ -2,6 +2,8 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5\allegro_audio.h>
+#include <allegro5\allegro_acodec.h>
 
 int szer = 800, wys = 600;  //rozmiary okna
 int deska_x = 100, deska_y = 20; //rozmiary deski
@@ -57,11 +59,18 @@ int main()
     ALLEGRO_TIMER* timer = al_create_timer(1.0 / 60);
 
     ALLEGRO_EVENT_QUEUE* queue = al_create_event_queue();
+    ALLEGRO_SAMPLE* sample = NULL;
 
     al_install_mouse(); //instalacja myszy
     al_init_font_addon(); //instalacja czcionki
     al_init_image_addon(); //dodawanie bitmap
     al_init_primitives_addon();
+    al_install_audio();
+    al_init_acodec_addon();
+
+   // al_reserve_sampler(1);
+
+    sample = al_load_sample("hit.mp3");
     ALLEGRO_KEYBOARD_STATE klawiatura;
     ALLEGRO_DISPLAY* okno = al_create_display(szer, wys); //tworzenie okna
     al_set_window_title(okno, "ARKANOID PROJEKT"); //tytul projektu
@@ -91,6 +100,7 @@ int main()
     //double czas = al_get_time();
     al_start_timer(timer);
     int exist = 1;
+    al_reserve_samples(1);
     while (!al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE))
     {
         al_wait_for_event(queue, &event);
@@ -138,7 +148,8 @@ int main()
             int brickcollision = brick_collision(brick_x, brick_y, szer, wys, p_y, p_x, brick_width, brick_height);
             
             if (brickcollision == 1)
-            {
+            {   
+                al_play_sample(sample, 1, 0, 5, ALLEGRO_PLAYMODE_ONCE,NULL);
                 Dir = DOL;
                 exist = 0;
             }
@@ -211,6 +222,7 @@ int main()
     }
     // al_destroy_bitmap(deska);// czyszczenie pamieci
     al_destroy_display(okno);//
-    al_destroy_bitmap(pilka); //
+    al_destroy_bitmap(pilka);
+    al_destroy_sample(sample);//
     return 0;
 }
