@@ -7,12 +7,36 @@ int szer = 800, wys = 600;  //rozmiary okna
 int deska_x = 100, deska_y = 20; //rozmiary deski
 int p_x = 400, p_y = 320; //rozmiary pilki
 enum Direction {
-   LEWO,
-   GORA,
-   DOL,
-   PRAWO
+    LEWO,
+    GORA,
+    DOL,
+    PRAWO
 }Dir = DOL; // odbijanie od krawedzi
 
+bool kolizja(float paddle_x, float paddle_y, int szer, int wys, int p_y, int p_x, int paddle_width, int paddle_height)
+{
+    if (p_y == paddle_y)
+    {
+        if ((p_x >= paddle_x && p_x < paddle_x + paddle_width))
+            return true;
+        else return false;
+    }
+    else return false;
+}
+bool angle_normal, angle_large;
+int check_bar_collision(int ball_x, int ball_y, int bar_x, int bar_y, int bar_width, int bar_height)
+{
+    if (ball_y >= bar_y)
+    {
+        //left and right side parts of bar bounces off with larger angle
+        if ((ball_x >= bar_x && ball_x < bar_x + bar_width / 5) || (ball_x > bar_x + (bar_width - bar_width / 5)) && (ball_x <= bar_x + bar_width))
+            return angle_large;
+
+        else if (ball_x >= bar_x + bar_width / 5 && ball_x <= bar_x + (bar_width - bar_width / 5))
+            return angle_normal;
+    }
+    return 0;
+}
 int main()
 {
 
@@ -29,98 +53,122 @@ int main()
     ALLEGRO_KEYBOARD_STATE klawiatura;
     ALLEGRO_DISPLAY* okno = al_create_display(szer, wys); //tworzenie okna
     al_set_window_title(okno, "ARKANOID PROJEKT"); //tytul projektu
-    ALLEGRO_BITMAP* deska = al_create_bitmap(deska_x, deska_y); //stworzenie platformy do odbijania
+    //ALLEGRO_BITMAP* deska = al_create_bitmap(deska_x, deska_y); //stworzenie platformy do odbijania
+    ALLEGRO_BITMAP* paddle = al_load_bitmap("deska.png");
+    int paddle_width = al_get_bitmap_width(paddle);
+    int paddle_height = al_get_bitmap_height(paddle);
     ALLEGRO_BITMAP* pilka = al_load_bitmap("pilka.png"); //wczytanie pilki
     ALLEGRO_FONT* font8 = al_create_builtin_font(); //czcionka
-    al_set_target_bitmap(deska);
+   // al_set_target_bitmap(deska);
     al_clear_to_color(al_map_rgb(200, 0, 0));
     al_set_target_bitmap(al_get_backbuffer(okno));
 
     al_register_event_source(queue, al_get_keyboard_event_source());
     al_register_event_source(queue, al_get_display_event_source(okno));
     al_register_event_source(queue, al_get_timer_event_source(timer));
-    int x = 320, y = 550; // umiejscowienie deski
+    int paddle_x = 320, paddle_y = 520; // umiejscowienie deski
     int szerokosc_pilka = al_get_bitmap_width(pilka);
     int wysokosc_pilka = al_get_bitmap_height(pilka);
     al_get_keyboard_state(&klawiatura); //odczyt z klawiatury
     ALLEGRO_EVENT event;
     //double czas = al_get_time();
     al_start_timer(timer);
+
     while (!al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE))
     {
         al_wait_for_event(queue, &event);
         al_get_keyboard_state(&klawiatura);
-  
+
         if (event.type == ALLEGRO_EVENT_TIMER)
         {
-            if (al_key_down(&klawiatura, ALLEGRO_KEY_RIGHT) && x < szer - deska_x) x = x + 8;
-            if (al_key_down(&klawiatura, ALLEGRO_KEY_LEFT) && x > 0) x = x - 8;
+            if (al_key_down(&klawiatura, ALLEGRO_KEY_RIGHT) && paddle_x < szer - paddle_width) paddle_x += 8;
+            if (al_key_down(&klawiatura, ALLEGRO_KEY_LEFT) && paddle_x > 0) paddle_x -= 8;
 
-  
+
             //sciany
+
             //PRAWO
             if (p_x >= szer)
             {
                 Dir = LEWO;
-
             }
-    
-         
-       
+
             //LEWO
-         
             else if (p_x <= 0)
             {
                 Dir = PRAWO;
-
             }
 
-            //GORA
-            if (p_y == 0)
+            // GORA
+            else if (p_y <= 0)
             {
                 Dir = DOL;
             }
 
             //DOL
-            else if (p_y == wys )
+
+            else if (p_y >= wys)
             {
                 Dir = GORA;
-             }
-
-        
-            //Pilka ruch
-            if (Dir == GORA) 
+            }
+            int kolizja_paddle = kolizja(paddle_x, paddle_y, szer, wys, p_y, p_x, paddle_width, paddle_height);
+            if (kolizja_paddle == 1)
             {
-                    p_x -= 1;
-                    p_y -= 4;
-        
+                Dir = GORA;
+            }
+            //deska
+           // int bar_collision = check_bar_collision(p_x, p_y, x, y, deska_x, deska_y);
+          //  if (bar_collision == angle_normal)
+           // {
+            //    Dir = GORA;
+
+          //  }
+          //  else if (bar_collision == angle_large)
+          //  {
+
+
+            //    Dir = GORA;
+
+
+
+          //  }
+
+            //Pilka ruch
+            if (Dir == GORA)
+            {
+                p_x -= 1;
+                p_y -= 4;
+
             }
             else  if (Dir == DOL) {
                 p_y += 4;
                 p_x -= 2;
-               
+
             }
-             else if (Dir == LEWO) {
+            else if (Dir == LEWO) {
                 p_x -= 2;
                 p_y -= 2;
             }
-             else  if (Dir == PRAWO) {
+            else  if (Dir == PRAWO) {
                 p_x += 4;
                 p_y += 2;
             }
 
 
+
+
             al_clear_to_color(al_map_rgb_f(100, 0.5, 0.5)); //tlo planszy
-            al_draw_bitmap(deska, x, y, 0); //wywolanie deski
-            //al_draw_bitmap(pilka, 400, 300, 0);
+            //al_draw_bitmap(deska, x, y, 0); //wywolanie deski
+            al_draw_bitmap(paddle, paddle_x, paddle_y, 1);
+            // al_draw_bitmap(pilka, 400, 300, 1);
             al_draw_scaled_bitmap(pilka, 15, 10, szerokosc_pilka, wysokosc_pilka, p_x, p_y, 25, 25, 0); //wywolanie pilki
-            al_draw_textf(font8, al_map_rgb(255, 255, 0), 10, 10, 0, "x=%3d , y=%3d", x, y); //tekst sluzacy do okreslania gdzie znajudje sie deska - tymczasowy
-       
+           // al_draw_textf(font8, al_map_rgb(255, 255, 0), 10, 10, 0, "x=%3d , y=%3d", x, y); //tekst sluzacy do okreslania gdzie znajudje sie deska - tymczasowy
+
             al_flip_display();
             al_rest(0.001);
         }
     }
-    al_destroy_bitmap(deska);// czyszczenie pamieci
+    // al_destroy_bitmap(deska);// czyszczenie pamieci
     al_destroy_display(okno);//
     al_destroy_bitmap(pilka); //
     return 0;
