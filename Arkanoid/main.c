@@ -199,7 +199,7 @@ int main()
             }
             else if(exist==0)
             {
-                al_draw_text(font8, al_map_rgb(0, 255, 0), 350, 300, 0, "Przegrales");
+                al_draw_text(font8, al_map_rgb(0, 255, 0), 350, 300, 0, "Wygrales");
             }
 
             al_draw_scaled_bitmap(pilka, 15, 10, szerokosc_pilka, wysokosc_pilka, p_x, p_y, 25, 25, 0); //wywolanie pilki
