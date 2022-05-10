@@ -12,7 +12,7 @@ bool leftside = true;
 bool rightside = true;
 bool center = true;
 
-#define kolumny 6
+#define kolumny 7
 #define wiersze 3
 //288 szer
 //30 wys
@@ -97,9 +97,9 @@ bool brick_collision(int brick_x,int brick_y,int brick_szer,int brick_wys, int s
 void renderuj_bloki(struct brick brick[kolumny][wiersze])
 {
     int i, j;
-   for(i=0;i<=kolumny;i++)
+   for(i=0;i<kolumny;i++)
    {
-       for (j = 0;j<=wiersze;j++)
+       for (j = 0;j<wiersze;j++)
        {
            brick[i][j].x = 10 +(i*98);
            brick[i][j].y = 50+(j*30);
@@ -114,9 +114,9 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
     //ALLEGRO_BITMAP* brick_1 = al_load_bitmap("red.png");
     
     int i, j;
-    for (i = 0; i <= kolumny; i++)
+    for (i = 0; i < kolumny; i++)
     {
-        for (j = 0; j <= wiersze; j++)
+        for (j = 0; j < wiersze; j++)
         {
             if (brick[i][j].istnieje == true)
             {
@@ -165,9 +165,10 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
         int brick_x = 300;
         int brick_y = 100;
         int points = 0;
+        int destroyed_blocks = 0;
         int i, j;
         //DZIALAJACE RENDEROWANIE MIEJSCA NA BLOKI
-        for (i = 0; i <= kolumny; i++)
+        for (i = 0; i < kolumny; i++)
         {
             for (j = 0; j < wiersze; j++)
             {
@@ -216,16 +217,22 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
             if (event.type == ALLEGRO_EVENT_TIMER)
             {   
                 
+                
                 if (al_key_down(&klawiatura, ALLEGRO_KEY_RIGHT) && paddle_x < szer - paddle_width) paddle_x += 8;
                 if (al_key_down(&klawiatura, ALLEGRO_KEY_LEFT) && paddle_x > 0) paddle_x -= 8;
 
                 if (ball.lives == 0)
                 {
-                    al_draw_text(font8, al_map_rgb(0, 255, 0), 400, 400, 0, "Przegrales!");
+                   // al_draw_text(font8, al_map_rgb(0, 255, 0), 400, 400, 0, "Przegrales!");
                     ball.x = 250;
                     ball.y = 300;
 
 
+                }
+                else if (destroyed_blocks == 21)
+                {
+                    ball.x = 250;
+                    ball.y = 300;
                 }
                 else
                     ball.x += ball.dx;
@@ -369,6 +376,7 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
                                 ball.dy *= -1;
                                 brick[i][j].istnieje = false;
                                 points += 10;
+                                destroyed_blocks++;
                                 //brick[kolumny][wiersze].istnieje = 0;
                             }
 
@@ -413,6 +421,13 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
                 al_draw_textf(font8, al_map_rgb(0, 200, 0), 300, 320, 0, "Twoj wynik to: %3d",points);
                 
             }
+            else if (destroyed_blocks == 21)
+            {
+                al_draw_textf(font8, al_map_rgb(0, 200, 0), 350, 300, 0, "WYGRALES!");
+                al_draw_textf(font8, al_map_rgb(0, 200, 0), 300, 320, 0, "Twoj wynik to: %3d", points);
+              
+            }
+
             al_flip_display();
             al_rest(0.001);
 
