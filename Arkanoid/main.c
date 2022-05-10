@@ -42,6 +42,8 @@ struct brick
     int x;
     int y;
     int zycia;
+    int szer;
+    int wys;
     bool istnieje;
     int kolor;
 
@@ -78,16 +80,17 @@ bool paddle_collsion(float paddle_x, float paddle_y, int szer, int wys, int p_y,
     }
     else return 0;
 }
-bool brick_collision(float brick_x, float brick_y, int szer, int wys, int p_y, int p_x, int brick_width, int brick_height)
-{
-    if (p_y >= brick_y)
+bool brick_collision(int brick_x,int brick_y,int brick_szer,int brick_wys, int szer, int wys, int p_y, int p_x)
+{   
+ 
+    if (p_y <= brick_y)
     {
-        if ((p_x >= brick_x && p_x < brick_x + brick_width))
-
-            return true;
+        if (p_x >= brick_x && p_x <= brick_x + brick_szer) return true;
         else return false;
     }
     else return false;
+        
+    
 }
 
 void renderuj_bloki(struct brick brick[kolumny][wiersze])
@@ -100,6 +103,7 @@ void renderuj_bloki(struct brick brick[kolumny][wiersze])
            brick[i][j].x = 10 +(i*98);
            brick[i][j].y = 50+(j*30);
            brick[i][j].istnieje = true;
+          
        }
    }
 }
@@ -153,6 +157,7 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
         int brick_x = 300;
         int brick_y = 100;
         int i, j;
+        //DZIALAJACE RENDEROWANIE MIEJSCA NA BLOKI
         for (i = 0; i <= kolumny; i++)
         {
             for (j = 0; j < wiersze; j++)
@@ -160,6 +165,8 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
                 brick[i][j].x = 30 + (i * 105);
                 brick[i][j].y = 50 + (j * 55);
                 brick[i][j].istnieje = true;
+                brick[i][j].szer = al_get_bitmap_width(red_brick);
+                brick[i][j].wys = al_get_bitmap_height(red_brick);
             }
         }
         ALLEGRO_BITMAP* pilka = al_load_bitmap("pilka.png"); //wczytanie pilki
@@ -299,15 +306,15 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
                 //DOLNA SCIANA - tymczasowo
                 */
 
-                if (ball.x <= 0) //left edge
+                if (ball.x <= 0) //lefa krawedz
                 {
                     ball.dx *= -1;
                 }
-                else if (ball.x >= szer) //right edge
+                else if (ball.x >= szer) //prawa krawedz
                 {
                     ball.dx *= -1;
                 }
-                else if (ball.y <= 10) // top edge (under timer)
+                else if (ball.y <= 10) // gorna krawedz (under timer)
                 {
                     ball.dy *= -1;
                 }
@@ -317,14 +324,27 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
                 }
                 
                 //Cegla
-              //  int brickcollision = brick_collision(brick_x, brick_y, szer, wys, ball.y, ball.x, brick_width, brick_height);
+                
 
-               // if (brickcollision == true)
-               // {
-                //    al_play_sample(sample, 1, 0, 5, ALLEGRO_PLAYMODE_ONCE, NULL);
-               //     ball.dy *= -1;
-               //     brick[kolumny][wiersze].zycia = 0;
-              //  }
+                for (i = 0; i <= kolumny; i++)
+                {
+                    for (j = 0; j < wiersze; j++)
+                    {
+                        if (brick[i][j].istnieje == 1)
+                        {
+                            int brickcollision = brick_collision(brick[i][j].x,brick[i][j].y,brick[i][j].szer,brick[i][j].wys, szer, wys, ball.y, ball.x);
+                            if (brickcollision == true)
+                            {
+                                al_play_sample(sample, 1, 0, 5, ALLEGRO_PLAYMODE_ONCE, NULL);
+                                ball.dy *= -1;
+                                brick[i][j].istnieje = false;
+                                //brick[kolumny][wiersze].istnieje = 0;
+                            }
+
+                        }
+                    }
+                }
+           
                 // 
                 //deska
                // int bar_collision = check_bar_collision(p_x, p_y, x, y, deska_x, deska_y);
