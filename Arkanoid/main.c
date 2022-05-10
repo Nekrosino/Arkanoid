@@ -11,6 +11,9 @@
 bool leftside = true;
 bool rightside = true;
 bool center = true;
+
+#define kolumny 6
+#define wiersze 3
 //288 szer
 //30 wys
 int szer = 800, wys = 600;  //rozmiary okna
@@ -25,6 +28,24 @@ enum Direction {
     UP_RIGHT,
     
 }Dir = DOWN; // odbijanie od krawedzi
+
+struct ball
+{
+    float x;
+    float y;
+    float dx;
+    float dy;
+}ball;
+
+struct brick
+{
+    int x;
+    int y;
+    int zycia;
+    bool istnieje;
+    int kolor;
+
+}brick[kolumny][wiersze];
 /*
 bool kolizja(float paddle_x, float paddle_y, int szer, int wys, int p_y, int p_x, int paddle_width, int paddle_height)
 {
@@ -68,16 +89,40 @@ bool brick_collision(float brick_x, float brick_y, int szer, int wys, int p_y, i
     }
     else return false;
 }
-struct ball
+
+void renderuj_bloki(struct brick brick[kolumny][wiersze])
 {
-    float x;
-    float y;
-    float dx;
-    float dy;
-}ball;
+    int i, j;
+   for(i=0;i<=kolumny;i++)
+   {
+       for (j = 0;j<=wiersze;j++)
+       {
+           brick[i][j].x = 10 +(i*98);
+           brick[i][j].y = 50+(j*30);
+           brick[i][j].istnieje = true;
+       }
+   }
+}
+
+void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_brick)
+{   
+    //ALLEGRO_BITMAP* brick_1 = al_load_bitmap("red.png");
+    
+    int i, j;
+    for (i = 0; i <= kolumny; i++)
+    {
+        for (j = 0; j <= wiersze; j++)
+        {
+            if (brick[i][j].istnieje == true)
+            {
+                al_draw_bitmap(red_brick, brick[kolumny][wiersze].x, brick[kolumny][wiersze].y, 0);
+            }
+        }
+    }
+}
     int main()
     {
-
+       
         al_init();
         al_install_keyboard(); //instalacja klawiatury
         ALLEGRO_TIMER* timer = al_create_timer(1.0 / 60);
@@ -107,6 +152,16 @@ struct ball
         int brick_height = al_get_bitmap_height(red_brick);
         int brick_x = 300;
         int brick_y = 100;
+        int i, j;
+        for (i = 0; i <= kolumny; i++)
+        {
+            for (j = 0; j < wiersze; j++)
+            {
+                brick[i][j].x = 30 + (i * 105);
+                brick[i][j].y = 50 + (j * 55);
+                brick[i][j].istnieje = true;
+            }
+        }
         ALLEGRO_BITMAP* pilka = al_load_bitmap("pilka.png"); //wczytanie pilki
         ALLEGRO_FONT* font8 = al_create_builtin_font(); //czcionka
        // al_set_target_bitmap(deska);
@@ -128,6 +183,7 @@ struct ball
         ball.y = 300;
         ball.dx = 2;
         ball.dy = 2;
+
         al_reserve_samples(1);
         while (!al_key_down(&klawiatura, ALLEGRO_KEY_ESCAPE))
         {
@@ -141,6 +197,10 @@ struct ball
 
                 ball.x += ball.dx;
                 ball.y += ball.dy;
+                
+                
+
+
 
                 //sciany
 
@@ -177,7 +237,7 @@ struct ball
                  }
                 */
                 int paddlecollision = paddle_collsion(paddle_x, paddle_y, szer, wys, ball.y, ball.x, paddle_width, paddle_height);
-                if (paddlecollision == leftside || paddlecollision == center|| paddlecollision == rightside)
+                if (paddlecollision == center)
                 {
                     ball.dy *= -1;
                 }
@@ -255,15 +315,16 @@ struct ball
                 {
                     ball.dy *= -1;
                 }
+                
                 //Cegla
-                int brickcollision = brick_collision(brick_x, brick_y, szer, wys, ball.y, ball.x, brick_width, brick_height);
+              //  int brickcollision = brick_collision(brick_x, brick_y, szer, wys, ball.y, ball.x, brick_width, brick_height);
 
-                if (brickcollision == true)
-                {
-                    al_play_sample(sample, 1, 0, 5, ALLEGRO_PLAYMODE_ONCE, NULL);
-                    ball.dy *= -1;
-                    exist = 0;
-                }
+               // if (brickcollision == true)
+               // {
+                //    al_play_sample(sample, 1, 0, 5, ALLEGRO_PLAYMODE_ONCE, NULL);
+               //     ball.dy *= -1;
+               //     brick[kolumny][wiersze].zycia = 0;
+              //  }
                 // 
                 //deska
                // int bar_collision = check_bar_collision(p_x, p_y, x, y, deska_x, deska_y);
@@ -341,16 +402,25 @@ struct ball
             al_draw_bitmap(paddle, paddle_x, paddle_y, 1);
             // al_draw_bitmap(pilka, 400, 300, 1);
 
-            if (exist == 1)
+          //  if (brick[kolumny][wiersze].zycia == 1)
+          //  {
             {
-                al_draw_bitmap(red_brick, brick_x, brick_y, 1);
-
-
+               
+                for (i = 0; i <= kolumny; i++)
+                {   
+                    for(j = 0;j<=wiersze;j++)
+                        if (brick[i][j].istnieje == 1)
+                        {
+                            al_draw_bitmap(red_brick, brick[i][j].x, brick[i][j].y, 1);
+                        }
+                }
             }
-            else if (exist == 0)
-            {
-                al_draw_text(font8, al_map_rgb(0, 255, 0), 350, 300, 0, "Wygrales");
-            }
+
+           // }
+           // else if (brick[kolumny][wiersze].zycia == 0)
+           // {
+           //     al_draw_text(font8, al_map_rgb(0, 255, 0), 350, 300, 0, "Wygrales");
+          //  }
 
             al_draw_scaled_bitmap(pilka, 15, 10, szerokosc_pilka, wysokosc_pilka, ball.x, ball.y, 25, 25, 0); //wywolanie pilki
            // al_draw_textf(font8, al_map_rgb(255, 255, 0), 10, 10, 0, "x=%3d , y=%3d", x, y); //tekst sluzacy do okreslania gdzie znajudje sie deska - tymczasowy
@@ -362,6 +432,8 @@ struct ball
         // al_destroy_bitmap(deska);// czyszczenie pamieci
         al_destroy_display(okno);//
         al_destroy_bitmap(pilka);
+        al_destroy_bitmap(paddle);
+        al_destroy_bitmap(red_brick);
         al_destroy_sample(sample);//
         return 0;
 
