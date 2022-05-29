@@ -19,15 +19,9 @@ bool center = true;
 int szer = 800, wys = 600;  //rozmiary okna
 int deska_x = 100, deska_y = 20; //rozmiary deski
 int p_x = 400, p_y = 320; //umiejscowjenie pilki
-enum Direction {
-    UP,
-    UP_LEFT,
-    DOWN_LEFT,
-    DOWN,
-    DOWN_RIGHT,
-    UP_RIGHT,
+
+enum STAN { MENU, LEVEL1, GAMEOVER,RESET };
     
-}Dir = DOWN; // odbijanie od krawedzi
 
 struct ball
 {
@@ -49,6 +43,7 @@ struct brick
     int kolor;
 
 }brick[kolumny][wiersze];
+
 /*
 bool kolizja(float paddle_x, float paddle_y, int szer, int wys, int p_y, int p_x, int paddle_width, int paddle_height)
 {
@@ -167,18 +162,23 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
         int points = 0;
         int destroyed_blocks = 0;
         int i, j;
+        //==============
+        //STAN POCZATKOWY
+        //===============
+        int STAN = MENU;
+        
         //DZIALAJACE RENDEROWANIE MIEJSCA NA BLOKI
-        for (i = 0; i < kolumny; i++)
-        {
-            for (j = 0; j < wiersze; j++)
-            {
-                brick[i][j].x = 30 + (i * 105);
-                brick[i][j].y = 50 + (j * 55);
-                brick[i][j].istnieje = true;
-                brick[i][j].szer = al_get_bitmap_width(red_brick);
-                brick[i][j].wys = al_get_bitmap_height(red_brick);
-            }
-        }
+      //  for (i = 0; i < kolumny; i++)
+      //  {
+       //     for (j = 0; j < wiersze; j++)
+         //   {
+         //       brick[i][j].x = 30 + (i * 105);
+         //       brick[i][j].y = 50 + (j * 55);
+         //       brick[i][j].istnieje = true;
+         //       brick[i][j].szer = al_get_bitmap_width(red_brick);
+          //      brick[i][j].wys = al_get_bitmap_height(red_brick);
+         //   }
+      //  }
         ALLEGRO_BITMAP* pilka = al_load_bitmap("pilka.png"); //wczytanie pilki
         ALLEGRO_FONT* font8 = al_create_builtin_font(); //czcionka
        // al_set_target_bitmap(deska);
@@ -196,14 +196,11 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
         //double czas = al_get_time();
         al_start_timer(timer);
         int exist = 1;
-        ball.x = szer / 2;
-        ball.y = 300;
-        ball.dx = 4;
-        ball.dy = 4;
-        ball.lives = 3;
-
-        al_reserve_samples(16);
-        al_play_sample(soundtrack, 0.3, 0, 1, ALLEGRO_PLAYMODE_LOOP, NULL);
+       // ball.x = szer / 2;
+       // ball.y = 300;
+       // ball.dx = 4;
+       // ball.dy = 4;
+       // ball.lives = 3;
         
        
 
@@ -211,226 +208,244 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
         {   
             al_wait_for_event(queue, &event);
             al_get_keyboard_state(&klawiatura);
+          
 
+            if (STAN == MENU)
+            {   
+                int paddle_x = 320, paddle_y = 520;
+                int points = 0;
+                int destroyed_blocks = 0;
+                ball.x = szer / 2;
+                ball.y = 300;
+                ball.dx = 4;
+                ball.dy = 4;
+                ball.lives = 3;
+                if (al_key_down(&klawiatura, ALLEGRO_KEY_ENTER))
+                {
+                    for (i = 0; i < kolumny; i++)
+                    {
+                        for (j = 0; j < wiersze; j++)
+                        {
+                            brick[i][j].x = 30 + (i * 105);
+                            brick[i][j].y = 50 + (j * 55);
+                            brick[i][j].istnieje = true;
+                            brick[i][j].szer = al_get_bitmap_width(red_brick);
+                            brick[i][j].wys = al_get_bitmap_height(red_brick);
+                        }
+                    }
+                    STAN = LEVEL1;
+                   
+                }
+            }
+            if (STAN == RESET)
+            {
+                paddle_x = 320, paddle_y = 520;
+                points = 0;
+                destroyed_blocks = 0;
+                ball.x = szer / 2;
+                ball.y = 300;
+                ball.dx = 4;
+                ball.dy = 4;
+                ball.lives = 3;
+                    for (i = 0; i < kolumny; i++)
+                    {
+                        for (j = 0; j < wiersze; j++)
+                        {
+                            brick[i][j].x = 30 + (i * 105);
+                            brick[i][j].y = 50 + (j * 55);
+                            brick[i][j].istnieje = true;
+                            brick[i][j].szer = al_get_bitmap_width(red_brick);
+                            brick[i][j].wys = al_get_bitmap_height(red_brick);
+                        }
+                    }
+                    STAN = LEVEL1;
+
+            }
+
+            else if (STAN == LEVEL1)
+            {   
+              
+                if (al_key_down(&klawiatura, ALLEGRO_KEY_TAB))
+                {
+                    STAN = MENU;
+                }
+
+                if (al_key_down(&klawiatura, ALLEGRO_KEY_R))
+                {
+                    STAN = RESET;
+                }
+
+            }
            
 
             if (event.type == ALLEGRO_EVENT_TIMER)
-            {   
-                
-                
-                if (al_key_down(&klawiatura, ALLEGRO_KEY_RIGHT) && paddle_x < szer - paddle_width) paddle_x += 8;
-                if (al_key_down(&klawiatura, ALLEGRO_KEY_LEFT) && paddle_x > 0) paddle_x -= 8;
-
-                if (ball.lives == 0)
-                {
-                   // al_draw_text(font8, al_map_rgb(0, 255, 0), 400, 400, 0, "Przegrales!");
-                    ball.x = 250;
-                    ball.y = 300;
+            {
 
 
-                }
-                else if (destroyed_blocks == 21)
+                if (STAN == MENU)
                 {
-                    ball.x = 250;
-                    ball.y = 300;
-                }
-                else
-                    ball.x += ball.dx;
-                ball.y += ball.dy;
-                
-
-
-
-                //sciany
-
-                //PRAWO
-              /*  if (p_x >= szer)
-                {
-                    Dir = LEWO;
+                    al_reserve_samples(1);
+                    al_play_sample(soundtrack, 0.3, 0, 1, ALLEGRO_PLAYMODE_LOOP, NULL);
+                    al_clear_to_color(al_map_rgb_f(146, 150, 0));
+                    al_draw_text(font8, al_map_rgb(0, 255, 0), (szer/2)-100, 100, 0, "WCISNIJ ENTER ABY ZAGRAC!");
+                    al_flip_display();
+                    al_rest(0.001);
+                    
                 }
 
-                //LEWO
-                else if (p_x <= 0)
+                else if (STAN == GAMEOVER)
                 {
-                    Dir = PRAWO;
+                    al_draw_text(font8, al_map_rgb(0, 255, 0), 400, 400, 0, "PRZEGRALES!");
+                    al_draw_text(font8, al_map_rgb(0, 255, 0), 500, 400, 0, "WCISNIJ TAB ABY WROCIC DO MENU!");
                 }
 
-                // GORA
-                else if (p_y <= 0)
-                {
-                    Dir = DOL;
-                }
+                else if (STAN == LEVEL1)
+                {   
+                    al_reserve_samples(16);
+                   
+                    if (al_key_down(&klawiatura, ALLEGRO_KEY_RIGHT) && paddle_x < szer - paddle_width) paddle_x += 8;
+                    if (al_key_down(&klawiatura, ALLEGRO_KEY_LEFT) && paddle_x > 0) paddle_x -= 8;
 
-                //DOL
-
-                else if (p_y >= wys)
-                {
-                    Dir = GORA;
-                }
-                */
-                /* int kolizja_paddle = kolizja(paddle_x, paddle_y, szer, wys, p_y, p_x, paddle_width, paddle_height);
-                 //PADDLE
-                 if (kolizja_paddle == 1)
-                 {
-                     Dir = UP;
-                 }
-                */
-                int paddlecollision = paddle_collsion(paddle_x, paddle_y, szer, wys, ball.y, ball.x, paddle_width, paddle_height);
-                if (paddlecollision == center)
-                {
-                    al_play_sample(hit, 1, 0, 5, ALLEGRO_PLAYMODE_ONCE, NULL);
-                    ball.dy *= -1;
-                }
-               
-               /*
-                if (paddlecollision == leftside && Dir == DOWN_LEFT)
-                {
-                    Dir = UP_RIGHT;
-                }
-                else if (paddlecollision == leftside && Dir == DOWN_RIGHT)
-                {
-                    Dir = UP_LEFT;
-                }
-                else if (paddlecollision == leftside && Dir == DOWN)
-                {
-                    p_x += 1;
-                    p_y -= 4;
-                }
-
-                else if (paddlecollision == center && Dir == DOWN_LEFT)
-                {
-                    Dir = UP_RIGHT;
-                }
-                else if (paddlecollision == center && Dir == DOWN_RIGHT)
-                {
-                    Dir = UP_LEFT;
-                }
-                else if (paddlecollision == center && Dir == DOWN)
-                {
-                    Dir = UP;
-                }
-                */
-                //PRAWA SCIANA
-                /*
-                if (p_x >= szer && p_y >= 0 && p_y < 300)
-                {
-                    Dir = DOWN_LEFT;
-                }
-              
-                else if (p_x >= szer && p_y >=300)
-                {
-                    Dir = DOWN_LEFT;
-                }
-                //LEWA SCIANA
-                else if (p_x <= 0 && Dir == UP_LEFT)
-                {
-                    Dir = DOWN_RIGHT;
-                }
-                else if (p_x <= 0 && Dir == DOWN_LEFT)
-                {
-                    Dir = UP_RIGHT;
-                }
-
-                //GORNA SCIANA
-                else if (p_y >= 0 && Dir == UP)
-                {
-                    Dir = DOWN;
-                }
-
-                //DOLNA SCIANA - tymczasowo
-                */
-
-                if (ball.x <= 0) //lewa krawedz
-                {
-                    ball.dx *= -1;
-                }
-                else if (ball.x >= szer) //prawa krawedz
-                {
-                    ball.dx *= -1;
-                }
-                else if (ball.y <= 10) // gorna krawedz (under timer)
-                {
-                    ball.dy *= -1;
-                }
-                else if(ball.y >= wys)
-                {
-                    ball.lives--;
-                    ball.x = szer / 2;
-                    ball.y = 300;
-                }
-
-                //Cegla
-                
-
-
-                for (i = 0; i <= kolumny; i++)
-                {
-                    for (j = 0; j < wiersze; j++)
+                    if (ball.lives == 0)
                     {
-                        if (brick[i][j].istnieje == 1)
-                        {
-                            int brickcollision = brick_collision(brick[i][j].x,brick[i][j].y,brick[i][j].szer,brick[i][j].wys, szer, wys, ball.y, ball.x);
-                            if (brickcollision == true)
-                            {
-                                al_play_sample(sample, 0.3, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
-                                ball.dy *= -1;
-                                brick[i][j].istnieje = false;
-                                points += 10;
-                                destroyed_blocks++;
-                                //brick[kolumny][wiersze].istnieje = 0;
-                            }
+                        // al_draw_text(font8, al_map_rgb(0, 255, 0), 400, 400, 0, "Przegrales!");
+                        ball.x = 250;
+                        ball.y = 300;
 
+
+                    }
+                    else if (destroyed_blocks == 21)
+                    {
+                        ball.x = 250;
+                        ball.y = 300;
+                    }
+                    else
+                        ball.x += ball.dx;
+                    ball.y += ball.dy;
+
+
+                    int paddlecollision = paddle_collsion(paddle_x, paddle_y, szer, wys, ball.y, ball.x, paddle_width, paddle_height);
+                    if (paddlecollision == center)
+                    {
+                        al_play_sample(hit, 1, 0, 5, ALLEGRO_PLAYMODE_ONCE, NULL);
+                        ball.dy *= -1;
+                    }
+
+                    /*
+                     if (paddlecollision == leftside && Dir == DOWN_LEFT)
+                     {
+                         Dir = UP_RIGHT;
+                     }
+                     else if (paddlecollision == leftside && Dir == DOWN_RIGHT)
+                     {
+                         Dir = UP_LEFT;
+                     }
+                     else if (paddlecollision == leftside && Dir == DOWN)
+                     {
+                         p_x += 1;
+                         p_y -= 4;
+                     }
+
+                     else if (paddlecollision == center && Dir == DOWN_LEFT)
+                     {
+                         Dir = UP_RIGHT;
+                     }
+                     else if (paddlecollision == center && Dir == DOWN_RIGHT)
+                     {
+                         Dir = UP_LEFT;
+                     }
+                     else if (paddlecollision == center && Dir == DOWN)
+                     {
+                         Dir = UP;
+                     }
+                     */
+
+
+                    if (ball.x <= 0) //lewa krawedz
+                    {
+                        ball.dx *= -1;
+                    }
+                    else if (ball.x >= szer) //prawa krawedz
+                    {
+                        ball.dx *= -1;
+                    }
+                    else if (ball.y <= 10) // gorna krawedz (under timer)
+                    {
+                        ball.dy *= -1;
+                    }
+                    else if (ball.y >= wys)
+                    {
+                        ball.lives--;
+                        ball.x = szer / 2;
+                        ball.dx *= -1;
+                        ball.y = 300;
+                    }
+
+                    //Cegla
+
+
+
+                    for (i = 0; i <= kolumny; i++)
+                    {
+                        for (j = 0; j < wiersze; j++)
+                        {
+                            if (brick[i][j].istnieje == 1)
+                            {
+                                int brickcollision = brick_collision(brick[i][j].x, brick[i][j].y, brick[i][j].szer, brick[i][j].wys, szer, wys, ball.y, ball.x);
+                                if (brickcollision == true)
+                                {
+                                    al_play_sample(sample, 0.3, 0, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
+                                    ball.dy *= -1;
+                                    brick[i][j].istnieje = false;
+                                    points += 10;
+                                    destroyed_blocks++;
+
+                                }
+
+                            }
                         }
+                    }
+
+
+
+
+                    al_clear_to_color(al_map_rgb_f(100, 0.5, 0.5)); //tlo planszy
+
+
+                    al_draw_bitmap(paddle, paddle_x, paddle_y, 1);
+
+                    {
+
+                        for (i = 0; i <= kolumny; i++)
+                        {
+                            for (j = 0; j <= wiersze; j++)
+                                if (brick[i][j].istnieje == 1)
+                                {
+                                    al_draw_bitmap(red_brick, brick[i][j].x, brick[i][j].y, 1);
+                                }
+                        }
+                    }
+
+                    al_draw_scaled_bitmap(pilka, 15, 10, szerokosc_pilka, wysokosc_pilka, ball.x, ball.y, 25, 25, 0); //wywolanie pilki
+                    al_draw_textf(font8, al_map_rgb(255, 255, 0), 10, 10, 0, "Zycia=%3d ,Punkty=%3d ", ball.lives, points); //tekst sluzacy do okreslania gdzie znajudje sie deska - tymczasowy
+                    if (ball.lives == 0)
+                    {
+                        al_draw_textf(font8, al_map_rgb(200, 0, 0), 350, 300, 0, "PRZEGRALES!");
+                        al_draw_textf(font8, al_map_rgb(0, 200, 0), 300, 320, 0, "Twoj wynik to: %3d", points);
+
+                    }
+                    else if (destroyed_blocks == 21)
+                    {
+                        al_draw_textf(font8, al_map_rgb(0, 200, 0), 350, 300, 0, "WYGRALES!");
+                        al_draw_textf(font8, al_map_rgb(0, 200, 0), 300, 320, 0, "Twoj wynik to: %3d", points);
+
                     }
                 }
 
-                //font_caption = al_load_font("fonts/FFF_Tusj.ttf", 60, 0);
+             
+                al_flip_display();
+                al_rest(0.001);
             }
-
-            al_clear_to_color(al_map_rgb_f(100, 0.5, 0.5)); //tlo planszy
-            //al_draw_bitmap(deska, x, y, 0); //wywolanie deski
-       
-            al_draw_bitmap(paddle, paddle_x, paddle_y, 1);
-            // al_draw_bitmap(pilka, 400, 300, 1);
-
-          //  if (brick[kolumny][wiersze].zycia == 1)
-          //  {
-            {
-               
-                for (i = 0; i <= kolumny; i++)
-                {   
-                    for(j = 0;j<=wiersze;j++)
-                        if (brick[i][j].istnieje == 1)
-                        {
-                            al_draw_bitmap(red_brick, brick[i][j].x, brick[i][j].y, 1);
-                        }
-                }
-            }
-
-           // }
-           // else if (brick[kolumny][wiersze].zycia == 0)
-           // {
-           //     al_draw_text(font8, al_map_rgb(0, 255, 0), 350, 300, 0, "Wygrales");
-          //  }
-
-            al_draw_scaled_bitmap(pilka, 15, 10, szerokosc_pilka, wysokosc_pilka, ball.x, ball.y, 25, 25, 0); //wywolanie pilki
-            al_draw_textf(font8, al_map_rgb(255, 255, 0), 10, 10, 0, "Zycia=%3d ,Punkty=%3d ", ball.lives, points); //tekst sluzacy do okreslania gdzie znajudje sie deska - tymczasowy
-            if(ball.lives == 0)
-            { 
-                al_draw_textf(font8, al_map_rgb(200, 0, 0), 350, 300, 0, "PRZEGRALES!");
-                al_draw_textf(font8, al_map_rgb(0, 200, 0), 300, 320, 0, "Twoj wynik to: %3d",points);
-                
-            }
-            else if (destroyed_blocks == 21)
-            {
-                al_draw_textf(font8, al_map_rgb(0, 200, 0), 350, 300, 0, "WYGRALES!");
-                al_draw_textf(font8, al_map_rgb(0, 200, 0), 300, 320, 0, "Twoj wynik to: %3d", points);
-              
-            }
-
-            al_flip_display();
-            al_rest(0.001);
-
           
         }
 
