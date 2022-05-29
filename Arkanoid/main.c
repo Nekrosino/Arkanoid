@@ -19,7 +19,7 @@ int deska_x = 100, deska_y = 20; //rozmiary deski
 int p_x = 400, p_y = 320; //umiejscowjenie pilki
 
 enum STAN { MENU, LEVEL1, GAMEOVER,RESET }; //stany mozna kombinowac
-    
+
 
 struct ball //pilka
 {
@@ -126,6 +126,7 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
         al_init_primitives_addon();
         al_install_audio();
         al_init_acodec_addon();
+        al_init_ttf_addon();
 
         // al_reserve_sampler(1);
         soundtrack = al_load_sample("soundtrack.mp3");
@@ -133,11 +134,13 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
         hit = al_load_sample("hit.mp3");
         ALLEGRO_KEYBOARD_STATE klawiatura;
         ALLEGRO_DISPLAY* okno = al_create_display(szer, wys); //tworzenie okna
+    
       
         al_set_window_title(okno, "ARKANOID PROJEKT"); //tytul projektu
         //ALLEGRO_BITMAP* deska = al_create_bitmap(deska_x, deska_y); //stworzenie platformy do odbijania
-        ALLEGRO_BITMAP* paddle = al_load_bitmap("deska.png");
+        ALLEGRO_BITMAP* paddle = al_load_bitmap("deska3.png");
         ALLEGRO_BITMAP* red_brick = al_load_bitmap("red.png");
+        
         
         int paddle_width = al_get_bitmap_width(paddle);
         int paddle_height = al_get_bitmap_height(paddle);
@@ -165,8 +168,11 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
           //      brick[i][j].wys = al_get_bitmap_height(red_brick);
          //   }
       //  } //uzyte w innym miejscu
-        ALLEGRO_BITMAP* pilka = al_load_bitmap("pilka.png"); //wczytanie pilki
+        ALLEGRO_BITMAP* pilka1 = al_load_bitmap("pilka_kosmiczna.png"); //wczytanie pilki
         ALLEGRO_FONT* font8 = al_create_builtin_font(); //czcionka
+        ALLEGRO_FONT* font = al_load_font("Arka_solid.ttf", 90, 0);
+        
+       
        // al_set_target_bitmap(deska);
         al_clear_to_color(al_map_rgb(200, 0, 0));
         al_set_target_bitmap(al_get_backbuffer(okno));
@@ -175,8 +181,6 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
         al_register_event_source(queue, al_get_display_event_source(okno));
         al_register_event_source(queue, al_get_timer_event_source(timer));
         int paddle_x = 320, paddle_y = 520; // umiejscowienie deski
-        int szerokosc_pilka = al_get_bitmap_width(pilka);
-        int wysokosc_pilka = al_get_bitmap_height(pilka);
         al_get_keyboard_state(&klawiatura); //odczyt z klawiatury
         ALLEGRO_EVENT event;
         //double czas = al_get_time();
@@ -270,12 +274,21 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
 
                 if (STAN == MENU)
                 {
+                    
                     al_reserve_samples(1);
                     al_play_sample(soundtrack, 0.3, 0, 1, ALLEGRO_PLAYMODE_LOOP, NULL);
-                    al_clear_to_color(al_map_rgb_f(146, 150, 0));
-                    al_draw_text(font8, al_map_rgb(0, 255, 0), (szer/2)-100, 100, 0, "WCISNIJ ENTER ABY ZAGRAC!");
+            
+                    al_clear_to_color(al_map_rgb_f(0, 0, 205)); //t³o
+                    al_draw_text(font, al_map_rgb(255, 255, 255), 400, 200, ALLEGRO_ALIGN_CENTRE, "ARKANOID");
+                    al_draw_text(font8, al_map_rgb(0, 255, 0), (szer / 2) - 100, 325, 0, "WCISNIJ ENTER ABY ZAGRAC!");                 
+                    al_draw_text(font8, al_map_rgb(0, 255, 0), 400, 375, ALLEGRO_ALIGN_CENTRE, "WCISNIJ ESC ABY WYJSC Z PROGRAMU!");
+                    al_draw_text(font8, al_map_rgb(0, 255, 0), 400, 350, ALLEGRO_ALIGN_CENTRE, "WCISNIJ R ABY ZRESTARTOWAC PROGRAM!");
+                    
                     al_flip_display();
                     al_rest(0.001);
+                    
+
+                    
                     
                 }
 
@@ -397,7 +410,7 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
 
 
 
-                    al_clear_to_color(al_map_rgb_f(100, 0.5, 0.5)); //tlo planszy
+                    al_clear_to_color(al_map_rgb_f(200, 0.5, 0.5)); //tlo planszy
 
 
                     al_draw_bitmap(paddle, paddle_x, paddle_y, 1);
@@ -414,7 +427,8 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
                         }
                     }
 
-                    al_draw_scaled_bitmap(pilka, 15, 10, szerokosc_pilka, wysokosc_pilka, ball.x, ball.y, 25, 25, 0); //wywolanie pilki
+                    
+                    al_draw_bitmap(pilka1, ball.x, ball.y, 0);
                     al_draw_textf(font8, al_map_rgb(255, 255, 0), 10, 10, 0, "Zycia=%3d ,Punkty=%3d ", ball.lives, points); //tekst sluzacy do okreslania gdzie znajudje sie deska - tymczasowy
                     if (ball.lives == 0)
                     {
@@ -442,7 +456,7 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
         // al_destroy_bitmap(deska);// czyszczenie pamieci
      
         //
-        al_destroy_bitmap(pilka);
+        al_destroy_bitmap(pilka1);
         al_destroy_bitmap(paddle);
         al_destroy_bitmap(red_brick);
         al_destroy_sample(sample);//
