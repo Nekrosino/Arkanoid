@@ -8,22 +8,20 @@
 
 #define true 1
 #define false 0
-bool leftside = true;
-bool rightside = true;
-bool center = true;
+bool leftside = true; //mialobyc do kolizji paddla 
+bool rightside = true; //to samo
+bool center = true; //to dziala
 
-#define kolumny 7
-#define wiersze 3
-//288 szer
-//30 wys
+#define kolumny 7 //kolumny brickow
+#define wiersze 3 //--------------
 int szer = 800, wys = 600;  //rozmiary okna
 int deska_x = 100, deska_y = 20; //rozmiary deski
 int p_x = 400, p_y = 320; //umiejscowjenie pilki
 
-enum STAN { MENU, LEVEL1, GAMEOVER,RESET };
+enum STAN { MENU, LEVEL1, GAMEOVER,RESET }; //stany mozna kombinowac
     
 
-struct ball
+struct ball //pilka
 {
     float x;
     float y;
@@ -32,7 +30,7 @@ struct ball
     int lives;
 }ball;
 
-struct brick
+struct brick //cegly
 {
     int x;
     int y;
@@ -44,18 +42,6 @@ struct brick
 
 }brick[kolumny][wiersze];
 
-/*
-bool kolizja(float paddle_x, float paddle_y, int szer, int wys, int p_y, int p_x, int paddle_width, int paddle_height)
-{
-    if (p_y == paddle_y)
-    {
-        if ((p_x >= paddle_x && p_x < paddle_x + paddle_width))
-            return true;
-        else return false;
-    }
-    else return false;
-}
-*/
 bool paddle_collsion(float paddle_x, float paddle_y, int szer, int wys, int p_y, int p_x, int paddle_width, int paddle_height)
 {
     if (p_y >= paddle_y-20)
@@ -64,7 +50,7 @@ bool paddle_collsion(float paddle_x, float paddle_y, int szer, int wys, int p_y,
         {
             return center;
         }
-        //else if (p_x >= paddle_x + 60 && p_x < paddle_x + 228)
+        //else if (p_x >= paddle_x + 60 && p_x < paddle_x + 228) //nie dziala
       //  {
        //     return center;
       //  }
@@ -157,8 +143,8 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
         int paddle_height = al_get_bitmap_height(paddle);
         int brick_width = al_get_bitmap_width(red_brick);
         int brick_height = al_get_bitmap_height(red_brick);
-        int brick_x = 300;
-        int brick_y = 100;
+        int brick_x = 300; //szerokosc 
+        int brick_y = 100; //wysokosc
         int points = 0;
         int destroyed_blocks = 0;
         int i, j;
@@ -178,7 +164,7 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
          //       brick[i][j].szer = al_get_bitmap_width(red_brick);
           //      brick[i][j].wys = al_get_bitmap_height(red_brick);
          //   }
-      //  }
+      //  } //uzyte w innym miejscu
         ALLEGRO_BITMAP* pilka = al_load_bitmap("pilka.png"); //wczytanie pilki
         ALLEGRO_FONT* font8 = al_create_builtin_font(); //czcionka
        // al_set_target_bitmap(deska);
@@ -195,12 +181,12 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
         ALLEGRO_EVENT event;
         //double czas = al_get_time();
         al_start_timer(timer);
-        int exist = 1;
+        int exist = 1; //do niszczenia cegiel
        // ball.x = szer / 2;
        // ball.y = 300;
        // ball.dx = 4;
        // ball.dy = 4;
-       // ball.lives = 3;
+       // ball.lives = 3; //uzyte nizej
         
        
 
@@ -212,7 +198,7 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
 
             if (STAN == MENU)
             {   
-                int paddle_x = 320, paddle_y = 520;
+                int paddle_x = 320, paddle_y = 520; //komentarz wyzej
                 int points = 0;
                 int destroyed_blocks = 0;
                 ball.x = szer / 2;
@@ -222,7 +208,7 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
                 ball.lives = 3;
                 if (al_key_down(&klawiatura, ALLEGRO_KEY_ENTER))
                 {
-                    for (i = 0; i < kolumny; i++)
+                    for (i = 0; i < kolumny; i++) //render miejsca dla cegiel
                     {
                         for (j = 0; j < wiersze; j++)
                         {
@@ -306,7 +292,7 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
                     if (al_key_down(&klawiatura, ALLEGRO_KEY_RIGHT) && paddle_x < szer - paddle_width) paddle_x += 8;
                     if (al_key_down(&klawiatura, ALLEGRO_KEY_LEFT) && paddle_x > 0) paddle_x -= 8;
 
-                    if (ball.lives == 0)
+                    if (ball.lives == 0) //przegrana
                     {
                         // al_draw_text(font8, al_map_rgb(0, 255, 0), 400, 400, 0, "Przegrales!");
                         ball.x = 250;
@@ -361,15 +347,15 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
                      */
 
 
-                    if (ball.x <= 0) //lewa krawedz
+                    if (ball.x <= 0) //lewa strona planszy
                     {
                         ball.dx *= -1;
                     }
-                    else if (ball.x >= szer) //prawa krawedz
+                    else if (ball.x >= szer) //prawa strona planszy
                     {
                         ball.dx *= -1;
                     }
-                    else if (ball.y <= 10) // gorna krawedz (under timer)
+                    else if (ball.y <= 10) // gorna strona planszy 
                     {
                         ball.dy *= -1;
                     }
@@ -378,13 +364,15 @@ void postaw_bloki(struct brick brick[kolumny][wiersze], ALLEGRO_BITMAP* red_bric
                         ball.lives--;
                         ball.x = szer / 2;
                         ball.dx *= -1;
-                        ball.y = 300;
+                        ball.y = 300; //dolna strona planszy
                     }
 
                     //Cegla
 
 
-
+                    //=============
+                    //RENDER BLOKOW
+                    //=============
                     for (i = 0; i <= kolumny; i++)
                     {
                         for (j = 0; j < wiersze; j++)
