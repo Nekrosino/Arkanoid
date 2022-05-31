@@ -92,6 +92,17 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <Allegro_AddonImage>yes</Allegro_AddonImage>
+    <Allegro_AddonTTF>yes</Allegro_AddonTTF>
+    <Allegro_AddonPrimitives>yes</Allegro_AddonPrimitives>
+    <Allegro_AddonAudio>yes</Allegro_AddonAudio>
+    <Allegro_AddonAcodec>yes</Allegro_AddonAcodec>
+    <Allegro_AddonPhysfs>yes</Allegro_AddonPhysfs>
+    <Allegro_AddonDialog>yes</Allegro_AddonDialog>
+    <Allegro_AddonMemfile>yes</Allegro_AddonMemfile>
+    <Allegro_AddonFont>yes</Allegro_AddonFont>
+    <Allegro_AddonColor>yes</Allegro_AddonColor>
+    <Allegro_AddonVideo>yes</Allegro_AddonVideo>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
